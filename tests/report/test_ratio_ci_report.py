@@ -34,9 +34,9 @@ def test_ratio_interval_reaches_the_report_payload() -> None:
     assert 'wilson' in str(payload)
 
 
-def test_continuous_metric_report_has_no_interval() -> None:
+def test_continuous_metric_report_carries_a_bootstrap_interval() -> None:
     report = _report('f1', [0.4, 0.6])
 
     subset = report.metrics[0].categories[0].subsets[0]
-    assert subset.metadata is None
-    assert 'wilson' not in str(report.to_dict())
+    assert subset.metadata['ci_method'] == 'bootstrap'
+    assert 'bootstrap' in str(report.to_dict())

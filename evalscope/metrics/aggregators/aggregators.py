@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from evalscope.api.metric import Aggregator, AggScore, SampleScore
 from evalscope.api.registry import register_aggregation
-from evalscope.metrics.aggregators.ci import ratio_ci_metadata
+from evalscope.metrics.aggregators.ci import bootstrap_ci_metadata, ratio_ci_metadata
 from evalscope.metrics.utils.functions import calculate_pass_at_k, calculate_pass_hat_k, mean
 from evalscope.utils.logger import get_logger
 
@@ -107,9 +107,15 @@ class Mean(Aggregator):
                         num=len(values),
                         num_correct=num_correct,
                         ids=metric_sample_ids[metric_name],
-                        # Ratio metrics carry an interval estimate; continuous metrics need the
-                        # bootstrap planned as the second slice of #2011.
-                        metadata=ratio_ci_metadata(num_correct, len(values)) if num_correct is not None else None,
+                        # Ratio metrics get an analytic Wilson interval; continuous metrics get
+                        # a percentile bootstrap, and non-finite values get none at all.
+                        metadata=(
+                            ratio_ci_metadata(num_correct, len(values))
+                            if num_correct is not None
+                            else bootstrap_ci_metadata(values)
+                            if all(isfinite(value) for value in values)
+                            else None
+                        ),
                     )
                 )
 

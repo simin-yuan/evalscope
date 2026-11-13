@@ -70,9 +70,9 @@ def test_mean_attaches_interval_to_ratio_metrics() -> None:
     assert aggregate.metadata['ci_low'] < aggregate.score < aggregate.metadata['ci_high']
 
 
-def test_mean_leaves_continuous_metrics_without_an_interval() -> None:
+def test_mean_gives_continuous_metrics_a_bootstrap_interval() -> None:
     scores = [SampleScore(sample_id=i, score=Score(value={'bleu': value})) for i, value in enumerate([0.4, 0.6])]
     result = Mean()(scores)
 
     assert result[0].num_correct is None
-    assert result[0].metadata is None
+    assert result[0].metadata['ci_method'] == 'bootstrap'
